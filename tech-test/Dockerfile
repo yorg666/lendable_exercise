@@ -9,10 +9,6 @@ RUN apk update && \
     apk add openssh
 
 
-RUN mkdir /www && \
-    chown -R nginx:www /var/lib/nginx && \
-    chown -R nginx:www /www
-
 RUN mkdir -p /run/nginx
 
 RUN mkdir -m 700 /root/.ssh; \
@@ -21,8 +17,12 @@ RUN mkdir -m 700 /root/.ssh; \
 
 RUN --mount=type=ssh,id=github git clone git@github.com:yorg666/lendable_exercise.git
 
-WORKDIR ./lendable_exercise
-COPY ./www/ /www/
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+WORKDIR /lendable_exercise/tech-test
+
+RUN cp -r ./www /www/
+RUN cp ./nginx/default.conf /etc/nginx/conf.d/default.conf
+
+RUN chown -R nginx:www /var/lib/nginx && \
+    chown -R nginx:www /www
 
 ENTRYPOINT nginx -g 'daemon off;'
