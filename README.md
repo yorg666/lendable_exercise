@@ -1,5 +1,34 @@
 
+## How to clone my repo:
+- get the private ssh key that I have attached in the email
+- go to the directory where you downloaded ssh key
+- add it to ssh agent
 
+```bash
+eval "$(ssh-agent -s)"
+ssh-add lendable_exercise
+```
+- clone the repo
+```bash
+git clone  --recursive git@github.com:yorg666/lendable_exercise.git
+```
+
+- cd to lendable_exercise/tech-test
+
+- build docker container
+```bash
+docker build --ssh github=./lendable_exercise -t buildtest:v1 .
+```
+
+- run the container
+```bash
+docker run -p 80:80 buildtest:v1 -dit &
+```
+
+- check that nginx page is available
+```bash
+curl localhost:80
+```
 
 
 ## Notes:
@@ -132,8 +161,8 @@ apk add git
 Openssl is also required
 
 ```bash
-/tmp # git clone --recursive git@github.com:yorg666/ee_exercise.git
-Cloning into 'ee_exercise'...
+/tmp # git clone --recursive git@github.com:yorg666/lendable_exercise.git
+Cloning into 'lendable_exercise'...
 fatal: unable to fork
 ```
 
@@ -145,8 +174,8 @@ apk add openssh
 Dring cloning I was getting warning about ECDSA key fingerprint
 
 ```bash
-/tmp # git clone  --recursive git@github.com:yorg666/ee_exercise.git
-Cloning into 'ee_exercise'...
+/tmp # git clone  --recursive git@github.com:yorg666/lendable_exercise.git
+Cloning into 'lendable_exercise'...
 The authenticity of host 'github.com (140.82.121.4)' can't be established.
 ECDSA key fingerprint is SHA256:p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM.
 Are you sure you want to continue connecting (yes/no)?
