@@ -1,4 +1,4 @@
-FROM alpine:3.8
+FROM alpine:3.15
 
 RUN addgroup www
 RUN adduser -D -g 'www' nginx
@@ -19,8 +19,9 @@ RUN --mount=type=ssh,id=github git clone git@github.com:yorg666/lendable_exercis
 
 WORKDIR /lendable_exercise/tech-test
 
+
 RUN cp -r ./www /www/
-RUN cp ./nginx/default.conf /etc/nginx/conf.d/default.conf
+RUN cp ./nginx/default.conf /etc/nginx/http.d/default.conf
 
 RUN chown -R nginx:www /var/lib/nginx && \
     chown -R nginx:www /www

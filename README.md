@@ -247,6 +247,91 @@ Agent pid 835
 Identity added: tech-test/lendable_exercise (yorg@DESKTOP-QJUE2VM)
 ```
 
+Finally I have scan my container for known vulnerabilities
+```bash
+❯ docker scan buildtest:v10
+
+Testing buildtest:v10...
+
+Package manager:   apk
+Project name:      docker-image|buildtest
+Docker image:      buildtest:v10
+Platform:          linux/amd64
+Base image:        alpine:3.8
+
+✔ Tested 28 dependencies for known vulnerabilities, no vulnerable paths found.
+
+According to our scan, you are currently using the most secure version of the selected base image
+Alpine 3.8.5 is no longer supported by the Alpine maintainers. Vulnerability detection may be affected by a lack of security updates.
+
+For more free scans that keep your images secure, sign up to Snyk at https://dockr.ly/3ePqVcp
+```
+
+After I have bump Alpine versio from 3.8 to 3.15 I was no longer able to build container
+```bash
+❯ docker build --ssh github=../../priv_key/lendable_exercise -t buildtest:v12 .
+[+] Building 2.5s (14/15)                                                                                                                                                                    
+ => [internal] load build definition from Dockerfile                                                                                                                                    0.0s
+ => => transferring dockerfile: 690B                                                                                                                                                    0.0s
+ => [internal] load .dockerignore                                                                                                                                                       0.0s
+ => => transferring context: 2B                                                                                                                                                         0.0s
+ => [internal] load metadata for docker.io/library/alpine:3.15                                                                                                                          1.2s
+ => [ 1/12] FROM docker.io/library/alpine:3.15@sha256:f22945d45ee2eb4dd463ed5a431d9f04fcd80ca768bb1acf898d91ce51f7bf04                                                                  0.0s
+ => CACHED [ 2/12] RUN addgroup www                                                                                                                                                     0.0s
+ => CACHED [ 3/12] RUN adduser -D -g 'www' nginx                                                                                                                                        0.0s
+ => CACHED [ 4/12] RUN apk update &&     apk add nginx &&     apk add git &&     apk add openssh                                                                                        0.0s
+ => CACHED [ 5/12] RUN mkdir -p /run/nginx                                                                                                                                              0.0s
+ => CACHED [ 6/12] RUN mkdir -m 700 /root/.ssh;   touch -m 600 /root/.ssh/known_hosts;   ssh-keyscan github.com > /root/.ssh/known_hosts                                                0.0s
+ => CACHED [ 7/12] RUN --mount=type=ssh,id=github git clone git@github.com:yorg666/lendable_exercise.git                                                                                0.0s
+ => CACHED [ 8/12] WORKDIR /lendable_exercise/tech-test                                                                                                                                 0.0s
+ => [ 9/12] RUN ls -la && ls -la /etc/nginx/                                                                                                                                            0.3s
+ => [10/12] RUN cp -r ./www /www/                                                                                                                                                       0.4s
+ => ERROR [11/12] RUN cp ./nginx/default.conf /etc/nginx/conf.d/default.conf                                                                                                            0.5s
+------
+ > [11/12] RUN cp ./nginx/default.conf /etc/nginx/conf.d/default.conf:
+#14 0.475 cp: can't create '/etc/nginx/conf.d/default.conf': No such file or directory
+```
+
+**Solution**
+```bash
+RUN mkdir /etc/nginx/conf.d/
+```
+
+But now I'm getting 404
+```bash
+❯ curl localhost:81
+<html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+```
+
+```bash
+❯ docker exec -ti 919e8ae539ca sh
+/lendable_exercise/tech-test # 
+```
+
+```bash
+/lendable_exercise/tech-test # nginx -t
+nginx: [emerg] "server" directive is not allowed here in /etc/nginx/conf.d/default.conf:1
+nginx: configuration file /etc/nginx/nginx.conf test failed
+```
+
+**Solution**
+```bash
+RUN cp ./nginx/default.conf /etc/nginx/http.d/default.conf
+
+❯ docker exec -ti 4b3ab8af3063 sh
+/lendable_exercise/tech-test # nginx -s reload
+/lendable_exercise/tech-test # nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+```
+
 ## Documentation that I used
 https://rtfm.co.ua/en/git-git-clone-fatal-unable-to-fork-and-rsa-key-fingerprint/
 https://dzone.com/articles/clone-code-into-containers-how
+https://www.docker.com/blog/how-to-use-the-official-nginx-docker-image/
